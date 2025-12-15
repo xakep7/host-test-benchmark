@@ -7,8 +7,12 @@ This is simple bash and python scripts based at bench.monster scripts
  - Run from /root dirrectory is required for speedtest ookla
 
 # Run:
- - curl -LsO http://selcdn.x-api.net/bench/bench.sh; bash bench.sh {option. only one. Example: -bench}
- - curl -LsO https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/bench.sh; bash bench.sh {option. only one. Example: -bench}
+ - curl -LsO https://selcdn.x-api.net/bench/bench.sh; bash bench.sh {Option required. Only one option per run}
+ - curl -LsO https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/bench.sh; bash bench.sh {Option required. Only one option per run}
+
+# Example
+ - curl -LsO https://selcdn.x-api.net/bench/bench.sh; bash bench.sh -Russia
+ - curl -LsO https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/bench.sh; bash bench.sh --all
 
 # Options
 - --info - Show System info
