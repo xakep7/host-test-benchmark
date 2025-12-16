@@ -660,7 +660,7 @@ geekbench5() {
 		echo -e "  Single Core : 0" | tee -a $log
 		echo -e "   Multi Core : 0" | tee -a $log
 		echo "" | tee -a $log
-		GEEKBENCH_URL= "Failed"
+		GEEKBENCH_URL="Failed"
 	else
 		GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL | awk '{ print $2 }')
 		GEEKBENCH_URL=$(echo $GEEKBENCH_URL | awk '{ print $1 }')
@@ -749,7 +749,7 @@ geekbench6() {
 		echo -e "  Single Core : 0" | tee -a $log
 		echo -e "   Multi Core : 0" | tee -a $log
 		echo "" | tee -a $log
-		GEEKBENCH_URL= "Failed"
+		GEEKBENCH_URL="Failed"
 	else
 		GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL2 | awk '{ print $2 }')
 		GEEKBENCH_URL=$(echo $GEEKBENCH_URL2 | awk '{ print $1 }')
