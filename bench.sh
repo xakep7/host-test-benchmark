@@ -1058,7 +1058,6 @@ iotest() {
 		writemb_size="$writemb"MB
 		writemb_cpu=$writemb
 	fi
-	echo "   max size	: $writemb_cpu MB"
 
 	# CPU Speed test
 	echostyle "CPU Speed:"
