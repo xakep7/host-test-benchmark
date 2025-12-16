@@ -1118,7 +1118,7 @@ write_io() {
 					sed -E 's/.*avg=([0-9.]+).*/\1/')
 		read_bw=$(grep -m1 "read:" "readtest.txt" | sed -E 's/.*BW=([^ ]+).*/\1/')
 		
-		echo -e "$read_avg_iops | $read_bw MB/s" | tee -a $log
+		echo -e "$read_avg_iops | $read_bw" | tee -a $log
 		
 		echo -n "   fio write  : " | tee -a $log
 		writetest=$( fio --randrepeat=1 --ioengine=libaio --direct=1 --gtod_reduce=1 --name=test --filename=testio --bs=4k --iodepth=32 --size=1G --readwrite=randwrite --output=writetest.txt )
@@ -1127,7 +1127,7 @@ write_io() {
 		write_bw=$(grep -m1 "write:" "writetest.txt" | sed -E 's/.*BW=([^ ]+).*/\1/')
 		write_avg_iops=$(grep -m1 "^ *iops" writetest.txt | \
 					sed -E 's/.*avg=([0-9.]+).*/\1/')
-		echo -e "$write_avg_iops | $write_bw MB/s" | tee -a $log
+		echo -e "$write_avg_iops | $write_bw" | tee -a $log
 		rm -f testio;
 		rm -f writetest.txt;
 		rm -f readtest.txt;
