@@ -51,7 +51,7 @@ check_cdn_urls() {
     curl -s -o "$LOCAL_FILE" "$REMOTE_URL"
 
     if [[ $? -ne 0 || ! -f "$LOCAL_FILE" ]]; then
-        echo "Error! Can't recieve CDN list! Exiting..."
+        echo -e "\e[31mError! Can't recieve CDN list! Exiting...\e[0m"
         exit 1
     fi
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
@@ -645,40 +645,54 @@ geekbench5() {
 	echo " Download geekbench-5."
 	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-5.5.1-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
+	echo " Untar geekbench-5."
     tar xf $HOME/geekbench.tar.gz -C $GEEKBENCH_PATH --strip-components=1 > /dev/null
     rm -rf geekbench.tar.gz
-	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench5 2>/dev/null | grep "https://browser")
-	GEEKBENCH_URL=$(echo -e $GEEKBENCH_TEST | head -1)
-	GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL | awk '{ print $2 }')
-	GEEKBENCH_URL=$(echo $GEEKBENCH_URL | awk '{ print $1 }')
-	sleep 20
-	GEEKBENCH_SCORES=$(curl -s $GEEKBENCH_URL | grep "div class='score'")
-	GEEKBENCH_SCORES_SINGLE=$(echo $GEEKBENCH_SCORES | awk -v FS="(>|<)" '{ print $3 }')
-	GEEKBENCH_SCORES_MULTI=$(echo $GEEKBENCH_SCORES | awk -v FS="(<|>)" '{ print $7 }')
-	
-	if [[ $GEEKBENCH_SCORES_SINGLE -le 300 ]]; then
-		grank="(POOR)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 300 && $GEEKBENCH_SCORES_SINGLE -le 500 ]]; then
-		grank="(FAIR)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 500 && $GEEKBENCH_SCORES_SINGLE -le 700 ]]; then
-		grank="(GOOD)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 700 && $GEEKBENCH_SCORES_SINGLE -le 1000 ]]; then
-		grank="(VERY GOOD)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1000 && $GEEKBENCH_SCORES_SINGLE -le 1500 ]]; then
-		grank="(EXCELLENT)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1500 && $GEEKBENCH_SCORES_SINGLE -le 2000 ]]; then
-		grank="(THE BEAST)"
-	else
-		grank="(MONSTER)"
-	fi
-	
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echostyle "## Geekbench v5 CPU Benchmark:"
-	echo "" | tee -a $log
-	echo -e "  Single Core : $GEEKBENCH_SCORES_SINGLE  $grank" | tee -a $log
-	echo -e "   Multi Core : $GEEKBENCH_SCORES_MULTI" | tee -a $log
-	[ ! -z "$GEEKBENCH_URL_CLAIM" ] && echo -e "$GEEKBENCH_URL_CLAIM" >> geekbench_claim.url 2> /dev/null
-	echo "" | tee -a $log
+	echo " Geekbench-6. In progress, it takes 5-15 minutes..."
+	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench5 2>/dev/null | grep "https://browser")
+	echo -ne "\e[1A"; echo -ne "\033[0K\r"
+	GEEKBENCH_URL=$(echo -e $GEEKBENCH_TEST | head -1)
+	if [[ $GEEKBENCH_URL == '' ]]; then 
+		echo -e "\e[31mRecieve geekbench results failed. Connection Error.\e[0m"
+		echostyle "## Geekbench v5 CPU Benchmark:"
+		echo "" | tee -a $log
+		echo -e "  Single Core : 0" | tee -a $log
+		echo -e "   Multi Core : 0" | tee -a $log
+		echo "" | tee -a $log
+		GEEKBENCH_URL= "Failed"
+	else
+		GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL | awk '{ print $2 }')
+		GEEKBENCH_URL=$(echo $GEEKBENCH_URL | awk '{ print $1 }')
+		sleep 20
+		GEEKBENCH_SCORES=$(curl -s $GEEKBENCH_URL | grep "div class='score'")
+		GEEKBENCH_SCORES_SINGLE=$(echo $GEEKBENCH_SCORES | awk -v FS="(>|<)" '{ print $3 }')
+		GEEKBENCH_SCORES_MULTI=$(echo $GEEKBENCH_SCORES | awk -v FS="(<|>)" '{ print $7 }')
+		
+		if [[ $GEEKBENCH_SCORES_SINGLE -le 300 ]]; then
+			grank="(POOR)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 300 && $GEEKBENCH_SCORES_SINGLE -le 500 ]]; then
+			grank="(FAIR)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 500 && $GEEKBENCH_SCORES_SINGLE -le 700 ]]; then
+			grank="(GOOD)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 700 && $GEEKBENCH_SCORES_SINGLE -le 1000 ]]; then
+			grank="(VERY GOOD)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1000 && $GEEKBENCH_SCORES_SINGLE -le 1500 ]]; then
+			grank="(EXCELLENT)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1500 && $GEEKBENCH_SCORES_SINGLE -le 2000 ]]; then
+			grank="(THE BEAST)"
+		else
+			grank="(MONSTER)"
+		fi
+		
+		echo -ne "\e[1A"; echo -ne "\033[0K\r"
+		echostyle "## Geekbench v5 CPU Benchmark:"
+		echo "" | tee -a $log
+		echo -e "  Single Core : $GEEKBENCH_SCORES_SINGLE  $grank" | tee -a $log
+		echo -e "   Multi Core : $GEEKBENCH_SCORES_MULTI" | tee -a $log
+		[ ! -z "$GEEKBENCH_URL_CLAIM" ] && echo -e "$GEEKBENCH_URL_CLAIM" >> geekbench_claim.url 2> /dev/null
+		echo "" | tee -a $log
+	fi
 	echo -e " Cooling down..."
 	sleep 9
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
@@ -720,43 +734,54 @@ geekbench6() {
 	echo " Download geekbench-6."
 	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-6.5.0-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
+	echo " Untar geekbench-6."
     tar xf $HOME/geekbench.tar.gz -C $GEEKBENCH_PATH --strip-components=1 > /dev/null
     rm -rf geekbench.tar.gz
-	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench6 2>/dev/null | grep "https://browser")
-	GEEKBENCH_URL2=$(echo -e $GEEKBENCH_TEST | head -1)
-	GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL2 | awk '{ print $2 }')
-	GEEKBENCH_URL=$(echo $GEEKBENCH_URL2 | awk '{ print $1 }')
-	sleep 20
-	GEEKBENCH_SCORES=$(curl -s $GEEKBENCH_URL | grep "div class='score'")
-	GEEKBENCH_SCORES_SINGLE=$(echo $GEEKBENCH_SCORES | awk -v FS="(>|<)" '{ print $3 }')
-	GEEKBENCH_SCORES_MULTI=$(echo $GEEKBENCH_SCORES | awk -v FS="(<|>)" '{ print $7 }')
-	
-	if [[ $GEEKBENCH_SCORES_SINGLE -le 500 ]]; then
-		grank="(POOR)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 500 && $GEEKBENCH_SCORES_SINGLE -le 700 ]]; then
-		grank="(FAIR)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 700 && $GEEKBENCH_SCORES_SINGLE -le 1000 ]]; then
-		grank="(GOOD)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1000 && $GEEKBENCH_SCORES_SINGLE -le 1500 ]]; then
-		grank="(VERY GOOD)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1500 && $GEEKBENCH_SCORES_SINGLE -le 2000 ]]; then
-		grank="(EXCELLENT)"
-	elif [[ $GEEKBENCH_SCORES_SINGLE -ge 2000 && $GEEKBENCH_SCORES_SINGLE -le 3000 ]]; then
-		grank="(THE BEAST)"
-	else
-		grank="(MONSTER)"
-	fi
-	GEEKBENCH_PATH=$HOME/geekbench
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echostyle "## Geekbench v6 CPU Benchmark:"
-	echo "" | tee -a $log
-	echo -e "  Single Core : $GEEKBENCH_SCORES_SINGLE  $grank" | tee -a $log
-	echo -e "   Multi Core : $GEEKBENCH_SCORES_MULTI" | tee -a $log
-	echo -e "   Tech : $GEEKBENCH_URL2"
-	echo -e "   Tech : $GEEKBENCH_URL_CLAIM"
-	echo -e "   Tech : $GEEKBENCH_URL"
-	[ ! -z "$GEEKBENCH_URL_CLAIM" ] && echo -e "$GEEKBENCH_URL_CLAIM" >> geekbench_claim.url 2> /dev/null
-	echo "" | tee -a $log
+	echo " Geekbench-6. In progress, it takes 5-15 minutes..."
+	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench6 2>/dev/null | grep "https://browser")
+	echo -ne "\e[1A"; echo -ne "\033[0K\r"
+	GEEKBENCH_URL2=$(echo -e $GEEKBENCH_TEST | head -1)
+	if [[ $GEEKBENCH_URL2 == '' ]]; then 
+		echo -e "\e[31mRecieve geekbench results failed. Connection Error.\e[0m"
+		echostyle "## Geekbench v6 CPU Benchmark:"
+		echo "" | tee -a $log
+		echo -e "  Single Core : 0" | tee -a $log
+		echo -e "   Multi Core : 0" | tee -a $log
+		echo "" | tee -a $log
+		GEEKBENCH_URL= "Failed"
+	else
+		GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL2 | awk '{ print $2 }')
+		GEEKBENCH_URL=$(echo $GEEKBENCH_URL2 | awk '{ print $1 }')
+		sleep 20
+		GEEKBENCH_SCORES=$(curl -s $GEEKBENCH_URL | grep "div class='score'")
+		GEEKBENCH_SCORES_SINGLE=$(echo $GEEKBENCH_SCORES | awk -v FS="(>|<)" '{ print $3 }')
+		GEEKBENCH_SCORES_MULTI=$(echo $GEEKBENCH_SCORES | awk -v FS="(<|>)" '{ print $7 }')
+		
+		if [[ $GEEKBENCH_SCORES_SINGLE -le 500 ]]; then
+			grank="(POOR)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 500 && $GEEKBENCH_SCORES_SINGLE -le 700 ]]; then
+			grank="(FAIR)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 700 && $GEEKBENCH_SCORES_SINGLE -le 1000 ]]; then
+			grank="(GOOD)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1000 && $GEEKBENCH_SCORES_SINGLE -le 1500 ]]; then
+			grank="(VERY GOOD)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 1500 && $GEEKBENCH_SCORES_SINGLE -le 2000 ]]; then
+			grank="(EXCELLENT)"
+		elif [[ $GEEKBENCH_SCORES_SINGLE -ge 2000 && $GEEKBENCH_SCORES_SINGLE -le 3000 ]]; then
+			grank="(THE BEAST)"
+		else
+			grank="(MONSTER)"
+		fi
+		GEEKBENCH_PATH=$HOME/geekbench
+		echo -ne "\e[1A"; echo -ne "\033[0K\r"
+		echostyle "## Geekbench v6 CPU Benchmark:"
+		echo "" | tee -a $log
+		echo -e "  Single Core : $GEEKBENCH_SCORES_SINGLE  $grank" | tee -a $log
+		echo -e "   Multi Core : $GEEKBENCH_SCORES_MULTI" | tee -a $log
+		[ ! -z "$GEEKBENCH_URL_CLAIM" ] && echo -e "$GEEKBENCH_URL_CLAIM" >> geekbench_claim.url 2> /dev/null
+		echo "" | tee -a $log
+	fi
 	echo -e " Cooling down..."
 	sleep 9
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
@@ -1033,6 +1058,7 @@ iotest() {
 		writemb_size="$writemb"MB
 		writemb_cpu=$writemb
 	fi
+	echo "   max size	: $writemb_cpu MB"
 
 	# CPU Speed test
 	echostyle "CPU Speed:"
