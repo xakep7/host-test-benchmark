@@ -5,7 +5,7 @@ about() {
 	echo " ========================================================= "
 	echo " \             Speedtest bench.monster                   / "
 	echo " \      System info, Geekbench, I/O test and speedtest   / "
-	echo " \              v1.5.20   2025-12-12                     / "
+	echo " \              v1.5.21   2025-12-20                     / "
 	echo " \                  Region fix: x2k                      / "
 	echo " \             modified for host-test.ru                 / "
 	echo " ========================================================= "
@@ -52,7 +52,7 @@ check_cdn_urls() {
 
     if [[ $? -ne 0 || ! -f "$LOCAL_FILE" ]]; then
         echo -e "\e[31mError! Can't recieve CDN list! Exiting...\e[0m"
-        exit 1
+		cancel;
     fi
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
     echo -e "   \e[32mOK\e[0m. Check each CDN in list"
@@ -60,12 +60,12 @@ check_cdn_urls() {
 
     BEST_SPEED=0
     BEST_URL=""
-
+	
     while read -r url; do
         [[ -z "$url" ]] && continue
 		
 		url=$(echo "$url" | tr -d '\r')
-		url2="https://$url/ip2whois/test/testfile512k.bin"
+		url2="https://$url/ip2whois/test/testfile10m.bin"
         result=$(curl -o /dev/null --max-time 10 -s -w "%{http_code} %{time_total} %{speed_download}" "$url2")
         code=$(echo "$result" | awk '{print $1}')
         time=$(echo "$result" | awk '{print $2}')
@@ -131,6 +131,17 @@ benchinit() {
 	#fi
 	#echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	
+	# check bc
+	if  [ ! -e '/usr/bin/bc' ]; then
+	        echo " Installing bc ..."
+	            if [ "${release}" == "centos" ]; then
+	                yum -y install bc > /dev/null 2>&1
+	            else
+	                apt-get -y install bc > /dev/null 2>&1
+	            fi
+		echo -ne "\e[1A"; echo -ne "\e[0K\r"
+	fi
+
 	# check root
 	[[ $EUID -ne 0 ]] && echo -e "Error: This script must be run as root!" && exit 1
 	
@@ -202,6 +213,7 @@ benchinit() {
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 
+	check_cdn_urls;
 	# install speedtest-cli
 	if  [ ! -e 'speedtest' ]; then
 		echo " Installing Speedtest-cli ..."
@@ -642,14 +654,14 @@ geekbench5() {
 
 	GEEKBENCH_PATH=$HOME/geekbench
 	mkdir -p $GEEKBENCH_PATH
-	echo " Download geekbench-5."
+	echo " Download geekbench v5."
 	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-5.5.1-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echo " Untar geekbench-5."
+	echo " Untar geekbench v5."
     tar xf $HOME/geekbench.tar.gz -C $GEEKBENCH_PATH --strip-components=1 > /dev/null
     rm -rf geekbench.tar.gz
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echo " Geekbench-6. In progress, it takes 5-15 minutes..."
+	echo " Geekbench v5. In progress, it takes 5-15 minutes..."
 	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench5 2>/dev/null | grep "https://browser")
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
 	GEEKBENCH_URL=$(echo -e $GEEKBENCH_TEST | head -1)
@@ -731,14 +743,14 @@ geekbench6() {
 
 	GEEKBENCH_PATH=$HOME/geekbench
 	mkdir -p $GEEKBENCH_PATH
-	echo " Download geekbench-6."
+	echo " Download geekbench v6."
 	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-6.5.0-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echo " Untar geekbench-6."
+	echo " Untar geekbench v6."
     tar xf $HOME/geekbench.tar.gz -C $GEEKBENCH_PATH --strip-components=1 > /dev/null
     rm -rf geekbench.tar.gz
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
-	echo " Geekbench-6. In progress, it takes 5-15 minutes..."
+	echo " Geekbench v6. In progress, it takes 5-15 minutes..."
 	GEEKBENCH_TEST=$($GEEKBENCH_PATH/geekbench6 2>/dev/null | grep "https://browser")
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
 	GEEKBENCH_URL2=$(echo -e $GEEKBENCH_TEST | head -1)
@@ -1185,7 +1197,7 @@ print_end_time() {
 
 print_intro() {
 	printf "%-75s\n" "-" | sed 's/\s/-/g'
-	printf ' Region: %s  bench.monster v.1.5.20 2025-12-12 modified for host-test.ru \n' $region_name | tee -a $log
+	printf ' Region: %s  bench.monster v.1.5.21 2025-12-20 modified for host-test.ru \n' $region_name | tee -a $log
 	printf " Usage : curl -LsO cdn.ninja/bench/bench.sh; bash bench.sh -%s\n" $region_name | tee -a $log
 }
 
@@ -1258,7 +1270,6 @@ cleanup() {
 
 bench_all(){
 	region_name="Global"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1278,7 +1289,6 @@ bench_all(){
 
 usa_bench(){
 	region_name="USA"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1298,7 +1308,6 @@ usa_bench(){
 
 europe_bench(){
 	region_name="Europe"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1318,7 +1327,6 @@ europe_bench(){
 
 asia_bench(){
 	region_name="Asia"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1338,7 +1346,6 @@ asia_bench(){
 
 china_bench(){
 	region_name="China"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1358,7 +1365,6 @@ china_bench(){
 
 ru_bench(){
 	region_name="Russia"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1378,7 +1384,6 @@ ru_bench(){
 
 ukraine_bench(){
 	region_name="Ukraine"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
@@ -1397,7 +1402,6 @@ ukraine_bench(){
 }
 meast_bench(){
 	region_name="Middle-East"
-	check_cdn_urls;
 	print_intro;
 	benchinit;
 	next;
