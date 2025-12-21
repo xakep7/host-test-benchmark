@@ -5,6 +5,7 @@ import time,json,sys
 import shlex
 import datetime
 import urllib.request
+import urllib.parse
 import subprocess
 from importlib import reload
 
@@ -28,6 +29,26 @@ def GetGeoioInfo(para):
 	else:
 		print("data error")
 		print(info)
+	
+def Upload_test_data(para):
+	try:
+		with open(para, 'r') as file:
+			content = file.read()
+		post_data = urllib.parse.urlencode({"clbin": content}).encode("utf-8")
+		header = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 host-test.ru benchmark"}
+		request = urllib.request.Request("https://host-test.ru/api/test_upload",data=post_data,method="POST", header)
+		response = urllib.request.urlopen(request, data=bytes(json.dumps(header), encoding="utf-8"))
+		info = response.read()
+		if(is_json(info)):
+			jsons = json.loads(info)
+			print(jsons['link'])
+		else:
+			print("data error")
+			print(info)
+	except FileNotFoundError:
+		print(f"Error: The file '{file_path}' was not found.")
+	except Exception as e:
+		print(f"An error occurred: {e}")
 
 def GetDiskInfo(para):
 	temp = ExecShell("df -h -P|grep '/'|grep -v tmpfs")[0];
@@ -68,5 +89,7 @@ if __name__ == "__main__":
 		GetDiskInfo(sys.argv[2])
 	elif type == 'geoip':
 		GetGeoioInfo(sys.argv[2])
+	elif type == 'upload':
+		Upload_test_data(sys.argv[2])
 	else:
 		print('ERROR: Parameter error')
