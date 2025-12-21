@@ -5,7 +5,7 @@ about() {
 	echo " ========================================================= "
 	echo " \             Speedtest bench.monster                   / "
 	echo " \      System info, Geekbench, I/O test and speedtest   / "
-	echo " \              v1.5.21   2025-12-20                     / "
+	echo " \              v1.5.22   2025-12-21                     / "
 	echo " \                  Region fix: x2k                      / "
 	echo " \             modified for host-test.ru                 / "
 	echo " ========================================================= "
@@ -100,11 +100,14 @@ echostyle(){
 
 benchinit() {
 	# check release
-	echo " current path: $PWD"
-	if [[ $PWD != '/root' ]]; then
-		echo -e " \e[31mError! /root dirrectory required for ookla speedtest! \n Please switch dirrectory and try again\e[0m"
+	if [[ $USER != 'root' ]]; then
+		echo -e " current user: \e[31m$USER\e[0m"
+		echo -e " \e[31mError! root user required for ookla speedtest! \n Please switch user and try again\e[0m"
 		echo -e " \e[31mExiting and Cleanup...\e[0m"
 		cancel;
+	else
+		echo -e " current user: \e[32m$USER\e[0m"
+		echo -e  " current path: \e[32m$HOME\e[0m"
 	fi
 	if [ -f /etc/redhat-release ]; then
 	    release="centos"
@@ -221,12 +224,12 @@ benchinit() {
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 	chmod a+rx $PWD/speedtest
-	confim_ookla=$(cat /root/.config/ookla/speedtest-cli.json)
+	confim_ookla=$(cat $HOME/.config/ookla/speedtest-cli.json)
 	if [[ $confim_ookla == '' ]]; then
 		echo "One time approve speedtest. Dont write anything!"
 		{ sleep 4; printf 'YES\n';sleep 3;printf '\003';} | $PWD/speedtest
 	fi
-	confim_ookla=$(cat /root/.config/ookla/speedtest-cli.json)
+	confim_ookla=$(cat $HOME/.config/ookla/speedtest-cli.json)
 	if [[ $confim_ookla == '' ]]; then
 		echo "One time approve speedtest. Dont write anything!"
 		{ sleep 4; printf 'YES\n';sleep 3;printf '\003';} | $PWD/speedtest
@@ -1197,7 +1200,7 @@ print_end_time() {
 
 print_intro() {
 	printf "%-75s\n" "-" | sed 's/\s/-/g'
-	printf ' Region: %s  bench.monster v.1.5.21 2025-12-20 modified for host-test.ru \n' $region_name | tee -a $log
+	printf ' Region: %s  bench.monster v.1.5.22 2025-12-21 modified for host-test.ru \n' $region_name | tee -a $log
 	printf " Usage : curl -LsO cdn.ninja/bench/bench.sh; bash bench.sh -%s\n" $region_name | tee -a $log
 }
 
