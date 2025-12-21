@@ -36,7 +36,7 @@ def Upload_test_data(para):
 			content = file.read()
 		post_data = urllib.parse.urlencode({"clbin": content}).encode("utf-8")
 		header = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 host-test.ru benchmark"}
-		request = urllib.request.Request("https://host-test.ru/api/test_upload",data=post_data,method="POST", header)
+		request = urllib.request.Request("https://host-test.ru/api/test_upload", data=post_data, method="POST", headers=header)
 		response = urllib.request.urlopen(request, data=bytes(json.dumps(header), encoding="utf-8"))
 		info = response.read()
 		if(is_json(info)):
@@ -93,3 +93,4 @@ if __name__ == "__main__":
 		Upload_test_data(sys.argv[2])
 	else:
 		print('ERROR: Parameter error')
+
