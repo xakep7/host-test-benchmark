@@ -237,7 +237,7 @@ benchinit() {
 	# install tools.py
 	if  [ ! -e 'tools.py' ]; then
 		echo " Installing tools.py ..."
-		wget --no-check-certificate $BEST_CDN/bench/tools.py --timeout=120 > /dev/null 2>&1
+		wget --no-check-certificate "https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/tools.py" --timeout=120 > /dev/null 2>&1
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 	chmod a+rx tools.py
@@ -869,8 +869,6 @@ ip_info4(){
 	echo -e " Organization : $org" | tee -a $log
 	echo -e " Location     : $city, $country / $countryCode" | tee -a $log
 	echo -e " Region       : $region" | tee -a $log
-
-	rm -rf tools.py
 }
 
 machine_location(){
@@ -885,8 +883,6 @@ machine_location(){
 
 	echo -e " Machine location: $country, $city ($region)"
 	echo -e " ISP & ORG: $isp / $org"
-
-	rm -rf tools.py
 }
 
 virt_check(){
@@ -1150,6 +1146,7 @@ write_io() {
 		echo -e "   -----------------------" | tee -a $log
 		echo -e "   Average    : $ioavg MB/s" | tee -a $log
 		echo "" | tee -a $log
+		
 		echo -n "   fio write  : " | tee -a $log
 		writetest=$( fio --randrepeat=1 --ioengine=libaio --direct=1 --gtod_reduce=1 --name=test --filename=testio --bs=4k --iodepth=32 --size=1G --readwrite=randwrite --output=writetest.txt )
 
@@ -1223,7 +1220,7 @@ sharetest() {
 	'haste' )
 		share_link=$( curl -X POST -s -d "$(cat $log)" https://hastebin.com/documents | awk -F '"' '{print "https://hastebin.com/"$4}' );;
 	'clbin' )
-		share_link=$( curl -X POST -s -d "$CURL_DATA" https://host-test.ru/api/test_upload | python3 -c "import sys, json; print(json.load(sys.stdin)['link'])" );;
+		share_link=$( python3 tools.py upload $log );;
 	esac
 
 	# print result info
@@ -1285,8 +1282,8 @@ bench_all(){
 	print_speedtest;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 usa_bench(){
@@ -1304,8 +1301,8 @@ usa_bench(){
 	print_speedtest_usa;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 europe_bench(){
@@ -1323,8 +1320,8 @@ europe_bench(){
 	print_speedtest_europe;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 asia_bench(){
@@ -1342,8 +1339,8 @@ asia_bench(){
 	print_speedtest_asia;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 china_bench(){
@@ -1361,8 +1358,8 @@ china_bench(){
 	print_speedtest_china;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 ru_bench(){
@@ -1380,8 +1377,8 @@ ru_bench(){
 	print_speedtest_ru;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 ukraine_bench(){
@@ -1399,8 +1396,8 @@ ukraine_bench(){
 	print_speedtest_ukraine;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 meast_bench(){
 	region_name="Middle-East"
@@ -1417,8 +1414,8 @@ meast_bench(){
 	print_speedtest_meast;
 	next;
 	print_end_time;
-	cleanup;
 	sharetest clbin;
+	cleanup;
 }
 
 log="$HOME/speedtest.log"
