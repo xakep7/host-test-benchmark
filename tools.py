@@ -19,16 +19,28 @@ def is_json(json_arr):
 	return True
 	
 def GetGeoioInfo(para):
-	header = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 host-test.ru benchmark"}
-	request = urllib.request.Request("https://ip2whois.ru/api/whoisinfo/ip/my", header)
-	response = urllib.request.urlopen(request, data=bytes(json.dumps(header), encoding="utf-8"))
-	info = response.read()
-	if(is_json(info)):
-		jsons = json.loads(info)
-		print(jsons[para])
-	else:
-		print("data error")
-		print(info)
+	headers = {
+		'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 host-test.ru benchmark"
+	}
+	request = urllib.request.Request("https://ip2whois.ru/api/whoisinfo/ip/my", headers=headers)
+
+	try:
+		with urllib.request.urlopen(request) as response:
+			info = response.read().decode('utf-8')
+            
+			if is_json(info):
+				jsons = json.loads(info)
+				if para in jsons:
+					print(jsons[para])
+				else:
+					print(f"Ключ '{para}' не найден в ответе. Доступные ключи: {list(jsons.keys())}")
+			else:
+				print("data error")
+				print(info)
+	except urllib.error.HTTPError as e:
+		print(f"Ошибка сервера (HTTP Error): {e.code} {e.reason}")
+	except urllib.error.URLError as e:
+		print(f"Ошибка подключения: {e.reason}")
 	
 def Upload_test_data(para):
 	try:
