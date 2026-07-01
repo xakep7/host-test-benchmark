@@ -5,7 +5,7 @@ about() {
 	echo " ========================================================= "
 	echo " \             Speedtest bench.monster                   / "
 	echo " \      System info, Geekbench, I/O test and speedtest   / "
-	echo " \              v1.5.22   2025-12-21                     / "
+	echo " \              v1.5.23   2026-07-02                     / "
 	echo " \                  Region fix: x2k                      / "
 	echo " \             modified for host-test.ru                 / "
 	echo " ========================================================= "
@@ -1196,7 +1196,7 @@ print_end_time() {
 
 print_intro() {
 	printf "%-75s\n" "-" | sed 's/\s/-/g'
-	printf ' Region: %s  bench.monster v.1.5.22 2025-12-21 modified for host-test.ru \n' $region_name | tee -a $log
+	printf ' Region: %s  bench.monster v.1.5.23 2026-07-02 modified for host-test.ru \n' $region_name | tee -a $log
 	printf " Usage : curl -LsO cdn.ninja/bench/bench.sh; bash bench.sh -%s\n" $region_name | tee -a $log
 }
 
