@@ -44,7 +44,7 @@ fi
 BEST_CDN=""
 
 check_cdn_urls() {
-    REMOTE_URL="http://repo.x-api.net/bench/mirrrors.txt"
+    REMOTE_URL="http://cdn.x-api.net/bench/mirrrors.txt"
     LOCAL_FILE="mirrrors.txt"
     echo "----- Best CDN checking -----"
     echo "   Download CDN list: $REMOTE_URL"
@@ -60,12 +60,13 @@ check_cdn_urls() {
 
     BEST_SPEED=0
     BEST_URL=""
+    BEST_CDN_NAME=""
 	
     while read -r url; do
         [[ -z "$url" ]] && continue
-		
 		url=$(echo "$url" | tr -d '\r')
-		url2="https://$url/ip2whois/test/testfile10m.bin"
+		IFS=' ' read -r -a url_link <<< "$url"
+		url2="https://${url_link[0]}/ip2whois/test/testfile10m.bin"
         result=$(curl -o /dev/null --max-time 10 -s -w "%{http_code} %{time_total} %{speed_download}" "$url2")
         code=$(echo "$result" | awk '{print $1}')
         time=$(echo "$result" | awk '{print $2}')
@@ -75,13 +76,14 @@ check_cdn_urls() {
             better=$(echo "$speed > $BEST_SPEED" | bc -l)
             if [[ "$better" -eq 1 ]]; then
                 BEST_SPEED=$speed
-                BEST_URL=$url
+                BEST_URL=${url_link[0]}
+                BEST_CDN_NAME=${url_link[1]}
             fi
         fi
     done < "$LOCAL_FILE"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
-    echo -e "   BEST CDN: \e[32m$BEST_URL\e[0m"
+    echo -e "   BEST CDN: \e[32m$BEST_URL ($BEST_CDN_NAME)\e[0m"
     echo -e "   Speed: \e[32m$BEST_SPEED bytes/s\e[0m"
     echo
 	
@@ -125,6 +127,9 @@ benchinit() {
 	    release="centos"
 	fi
 
+	# check root
+	[[ $EUID -ne 0 ]] && echo -e "Error: This script must be run as root!" && exit 1
+
 	# check OS
 	#if [ "${release}" == "centos" ]; then
 	#                echo "Checking OS ... [ok]"
@@ -144,9 +149,6 @@ benchinit() {
 	            fi
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
-
-	# check root
-	[[ $EUID -ne 0 ]] && echo -e "Error: This script must be run as root!" && exit 1
 	
 
 	# check python
@@ -224,15 +226,11 @@ benchinit() {
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 	chmod a+rx $PWD/speedtest
-	confim_ookla=$(cat $HOME/.config/ookla/speedtest-cli.json)
+	confim_ookla=$(cat $HOME/.config/ookla/speedtest-cli.json 2>/dev/null)
 	if [[ $confim_ookla == '' ]]; then
-		echo "One time approve speedtest. Dont write anything!"
-		{ sleep 4; printf 'YES\n';sleep 3;printf '\003';} | $PWD/speedtest
-	fi
-	confim_ookla=$(cat $HOME/.config/ookla/speedtest-cli.json)
-	if [[ $confim_ookla == '' ]]; then
-		echo "One time approve speedtest. Dont write anything!"
-		{ sleep 4; printf 'YES\n';sleep 3;printf '\003';} | $PWD/speedtest
+		echo "One time approve speedtest."
+		$PWD/speedtest --accept-license --accept-gdpr > /dev/null 2>&1
+		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 	# install tools.py
 	if  [ ! -e 'tools.py' ]; then
