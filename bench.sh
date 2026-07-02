@@ -44,7 +44,7 @@ fi
 BEST_CDN=""
 
 check_cdn_urls() {
-    REMOTE_URL="http://cdn.x-api.net/bench/mirrrors.txt"
+    REMOTE_URL="http://repo.x-api.net/bench/mirrrors.txt"
     LOCAL_FILE="mirrrors.txt"
     echo "----- Best CDN checking -----"
     echo "   Download CDN list: $REMOTE_URL"
@@ -68,21 +68,26 @@ check_cdn_urls() {
 		url=$(echo "$url" | tr -d '\r')
 		IFS=' ' read -r -a url_link <<< "$url"
 		url2="https://${url_link[0]}/ip2whois/test/testfile10m.bin"
+		echo -ne "   Testing ${url_link[1]}: "
         result=$(curl -o /dev/null --max-time 10 -s -w "%{http_code} %{time_total} %{speed_download}" "$url2")
         code=$(echo "$result" | awk '{print $1}')
         time=$(echo "$result" | awk '{print $2}')
         speed=$(echo "$result" | awk '{print $3}')
 		
-		ping_res=$(ping -c 3 -w 2 "${url_link[0]}" 2>/dev/null)
+		ping_res=$(ping -4 -c 4 -w 4 "${url_link[0]}" 2>/dev/null)
+        
         
         if [[ $? -eq 0 ]]; then
             rtt_line=$(echo "$ping_res" | tail -n 1)
-            IFS='/' read -r -a rtt_parts <<< "${rtt_line##*= }"
-            latency_ms=${rtt_parts[1]%.*}
+            rtt_avg=$(echo "$rtt_line" | awk -F'=' '{print $2}' | awk -F'/' '{print $2}' | tr -d ' ')
+            
+            latency_ms=$(echo "$rtt_avg" | cut -d'.' -f1)
+            [[ -z "$latency_ms" ]] && latency_ms=0
         else
             latency_ms=2000
         fi
         if [[ "$code" == "200" ]]; then
+			echo -e "\e[32m$speed bytes/s ($latency_ms ms.)\e[0m"
             better=$(echo "$speed > $BEST_SPEED" | bc -l)
             if [[ "$better" -eq 1 ]]; then
                 BEST_SPEED=$speed
@@ -90,11 +95,13 @@ check_cdn_urls() {
                 BEST_CDN_NAME=${url_link[1]}
 				BEST_CDN_LAT="$latency_ms ms."
             fi
-        fi
+        else
+			echo -e "\e[31mFailed\e[0m"
+		fi
     done < "$LOCAL_FILE"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
-    echo -e "   BEST CDN: \e[32m$BEST_URL ($BEST_CDN_NAME) $BEST_CDN_LAT\e[0m"
+    echo -e "   BEST CDN: \e[32m$BEST_URL ($BEST_CDN_NAME) ($BEST_CDN_LAT)\e[0m"
     echo -e "   Speed: \e[32m$BEST_SPEED bytes/s\e[0m"
     echo
 	
