@@ -61,6 +61,7 @@ check_cdn_urls() {
     BEST_SPEED=0
     BEST_URL=""
     BEST_CDN_NAME=""
+    BEST_CDN_LAT=""
 	
     while read -r url; do
         [[ -z "$url" ]] && continue
@@ -72,18 +73,28 @@ check_cdn_urls() {
         time=$(echo "$result" | awk '{print $2}')
         speed=$(echo "$result" | awk '{print $3}')
 		
+		ping_res=$(ping -c 3 -w 2 "${url_link[0]}" 2>/dev/null)
+        
+        if [[ $? -eq 0 ]]; then
+            rtt_line=$(echo "$ping_res" | tail -n 1)
+            IFS='/' read -r -a rtt_parts <<< "${rtt_line##*= }"
+            latency_ms=${rtt_parts[1]%.*}
+        else
+            latency_ms=2000
+        fi
         if [[ "$code" == "200" ]]; then
             better=$(echo "$speed > $BEST_SPEED" | bc -l)
             if [[ "$better" -eq 1 ]]; then
                 BEST_SPEED=$speed
                 BEST_URL=${url_link[0]}
                 BEST_CDN_NAME=${url_link[1]}
+				BEST_CDN_LAT="$latency_ms ms."
             fi
         fi
     done < "$LOCAL_FILE"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
-    echo -e "   BEST CDN: \e[32m$BEST_URL ($BEST_CDN_NAME)\e[0m"
+    echo -e "   BEST CDN: \e[32m$BEST_URL ($BEST_CDN_NAME) $BEST_CDN_LAT\e[0m"
     echo -e "   Speed: \e[32m$BEST_SPEED bytes/s\e[0m"
     echo
 	
