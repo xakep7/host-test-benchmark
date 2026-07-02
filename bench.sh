@@ -71,7 +71,7 @@ check_cdn_urls() {
         code=$(echo "$result" | awk '{print $1}')
         time=$(echo "$result" | awk '{print $2}')
         speed=$(echo "$result" | awk '{print $3}')
-		echo -e "   ${url_link[1]} Speed: \e[32m$BEST_SPEED bytes/s\e[0m"	
+		echo -e "   ${url_link[1]} Speed: \e[32m$speed bytes/s\e[0m"	
         if [[ "$code" == "200" ]]; then
             better=$(echo "$speed > $BEST_SPEED" | bc -l)
             if [[ "$better" -eq 1 ]]; then
