@@ -63,7 +63,7 @@ check_cdn_urls() {
     BEST_CDN_NAME=""
     BEST_CDN_LAT=""
 	
-    while read -r url; do
+	while read -r url; do
         [[ -z "$url" ]] && continue
 		url=$(echo "$url" | tr -d '\r')
 		IFS=' ' read -r -a url_link <<< "$url"
@@ -87,13 +87,20 @@ check_cdn_urls() {
             latency_ms=2000
         fi
         if [[ "$code" == "200" ]]; then
-			echo -e "\e[32m$speed bytes/s ($latency_ms ms.)\e[0m"
+			speed_clean=$(echo "$speed" | cut -d'.' -f1)
+            if [[ "$latency_ms" -eq 0 ]]; then
+                lat_display="<1 ms."
+            else
+                lat_display="$latency_ms ms."
+            fi
+			
+            echo -e "\e[32m$speed_clean bytes/s ($lat_display)\e[0m"
             better=$(echo "$speed > $BEST_SPEED" | bc -l)
             if [[ "$better" -eq 1 ]]; then
-                BEST_SPEED=$speed
+                BEST_SPEED=$speed_clean
                 BEST_URL=${url_link[0]}
                 BEST_CDN_NAME=${url_link[1]}
-				BEST_CDN_LAT="$latency_ms ms."
+				BEST_CDN_LAT="$lat_display"
             fi
         else
 			echo -e "\e[31mFailed\e[0m"
