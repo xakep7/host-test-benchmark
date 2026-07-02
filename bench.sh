@@ -747,7 +747,7 @@ geekbench6() {
 	GEEKBENCH_PATH=$HOME/geekbench
 	mkdir -p $GEEKBENCH_PATH
 	echo " Download geekbench v6."
-	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-6.5.0-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
+	wget -O $HOME/geekbench.tar.gz $BEST_CDN/bench/Geekbench-6.7.1-Linux.tar.gz --no-check-certificate --timeout=120 > /dev/null 2>&1
 	echo -ne "\e[1A"; echo -ne "\033[0K\r"
 	echo " Untar geekbench v6."
     tar xf $HOME/geekbench.tar.gz -C $GEEKBENCH_PATH --strip-components=1 > /dev/null
