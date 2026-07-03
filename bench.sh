@@ -62,6 +62,7 @@ check_cdn_urls() {
     BEST_URL=""
     BEST_CDN_NAME=""
     BEST_CDN_LAT=""
+	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	
 	while read -r url; do
         [[ -z "$url" ]] && continue
@@ -106,7 +107,6 @@ check_cdn_urls() {
 			echo -e "\e[31mFailed\e[0m"
 		fi
     done < "$LOCAL_FILE"
-	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	echo -ne "\e[1A"; echo -ne "\e[0K\r"
     echo -e "   BEST CDN: \e[32m$BEST_CDN_NAME ($BEST_CDN_LAT)\e[0m"
     echo -e "   Speed: \e[32m$BEST_SPEED bytes/s\e[0m"
