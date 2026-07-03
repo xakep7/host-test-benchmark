@@ -69,7 +69,7 @@ check_cdn_urls() {
 		IFS=' ' read -r -a url_link <<< "$url"
 		url2="https://${url_link[0]}/ip2whois/test/testfile10m.bin"
 		echo -ne "   Testing ${url_link[1]}: "
-        result=$(curl -o /dev/null --max-time 10 -s -w "%{http_code} %{time_total} %{speed_download}" "$url2")
+        result=$(curl -o /dev/null --max-time 10 -s -4 -w "%{http_code} %{time_total} %{speed_download}" "$url2")
         code=$(echo "$result" | awk '{print $1}')
         time=$(echo "$result" | awk '{print $2}')
         speed=$(echo "$result" | awk '{print $3}')
