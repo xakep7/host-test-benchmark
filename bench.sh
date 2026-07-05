@@ -5,7 +5,7 @@ about() {
 	echo " ========================================================= "
 	echo " \             Speedtest bench.monster                   / "
 	echo " \      System info, Geekbench, I/O test and speedtest   / "
-	echo " \              v1.5.23   2026-07-02                     / "
+	echo " \              v1.5.24   2026-07-05                     / "
 	echo " \                  Region fix: x2k                      / "
 	echo " \             modified for host-test.ru                 / "
 	echo " ========================================================= "
@@ -41,10 +41,10 @@ else
 	exit 1
 fi
 
-BEST_CDN=""
+BEST_CDN="https://cdn.ninja"
 
 check_cdn_urls() {
-    REMOTE_URL="http://repo.x-api.net/bench/mirrrors.txt"
+    REMOTE_URL="https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/mirrors.txt"
     LOCAL_FILE="mirrrors.txt"
     echo "----- Best CDN checking -----"
     echo "   Download CDN list: $REMOTE_URL"
@@ -62,9 +62,9 @@ check_cdn_urls() {
     BEST_URL=""
     BEST_CDN_NAME=""
     BEST_CDN_LAT=""
-	echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	
-	while read -r url; do
+	echo -ne "\e[1A"; echo -ne "\e[0K\r"
+    while read -r url; do
         [[ -z "$url" ]] && continue
 		url=$(echo "$url" | tr -d '\r')
 		IFS=' ' read -r -a url_link <<< "$url"
@@ -152,9 +152,6 @@ benchinit() {
 	    release="centos"
 	fi
 
-	# check root
-	[[ $EUID -ne 0 ]] && echo -e "Error: This script must be run as root!" && exit 1
-
 	# check OS
 	#if [ "${release}" == "centos" ]; then
 	#                echo "Checking OS ... [ok]"
@@ -174,6 +171,9 @@ benchinit() {
 	            fi
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
+
+	# check root
+	[[ $EUID -ne 0 ]] && echo -e "Error: This script must be run as root!" && exit 1
 	
 
 	# check python
@@ -260,7 +260,7 @@ benchinit() {
 	# install tools.py
 	if  [ ! -e 'tools.py' ]; then
 		echo " Installing tools.py ..."
-		wget --no-check-certificate "https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/heads/main/tools.py" --timeout=120 > /dev/null 2>&1
+		wget --no-check-certificate $BEST_CDN/bench/tools.py --timeout=120 > /dev/null 2>&1
 		echo -ne "\e[1A"; echo -ne "\e[0K\r"
 	fi
 	chmod a+rx tools.py
@@ -792,9 +792,18 @@ geekbench6() {
 		GEEKBENCH_URL_CLAIM=$(echo $GEEKBENCH_URL2 | awk '{ print $2 }')
 		GEEKBENCH_URL=$(echo $GEEKBENCH_URL2 | awk '{ print $1 }')
 		sleep 20
-		GEEKBENCH_SCORES=$(curl -s $GEEKBENCH_URL | grep "div class='score'")
-		GEEKBENCH_SCORES_SINGLE=$(echo $GEEKBENCH_SCORES | awk -v FS="(>|<)" '{ print $3 }')
-		GEEKBENCH_SCORES_MULTI=$(echo $GEEKBENCH_SCORES | awk -v FS="(<|>)" '{ print $7 }')
+		local html_meta
+		html_data=$(curl -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" "$GEEKBENCH_URL")
+
+		local GEEKBENCH_SCORES_SINGLE GEEKBENCH_SCORES_MULTI
+		single_block=$(echo "$html_data" | grep -A 5 -m 1 "Single-Core Score")
+		GEEKBENCH_SCORES_SINGLE=$(echo "$single_block" | grep -oE "[0-9]+" | head -n 1)
+		multi_block=$(echo "$html_data" | grep -A 5 -m 1 "Multi-Core Score")
+		GEEKBENCH_SCORES_MULTI=$(echo "$multi_block" | grep -oE "[0-9]+" | head -n 1)
+
+
+		[[ -z "$GEEKBENCH_SCORES_SINGLE" ]] && GEEKBENCH_SCORES_SINGLE=0
+		[[ -z "$GEEKBENCH_SCORES_MULTI" ]] && GEEKBENCH_SCORES_MULTI=0
 		
 		if [[ $GEEKBENCH_SCORES_SINGLE -le 500 ]]; then
 			grank="(POOR)"
@@ -1219,7 +1228,7 @@ print_end_time() {
 
 print_intro() {
 	printf "%-75s\n" "-" | sed 's/\s/-/g'
-	printf ' Region: %s  bench.monster v.1.5.23 2026-07-02 modified for host-test.ru \n' $region_name | tee -a $log
+	printf ' Region: %s  bench.monster v.1.5.24 2026-07-05 modified for host-test.ru \n' $region_name | tee -a $log
 	printf " Usage : curl -LsO cdn.ninja/bench/bench.sh; bash bench.sh -%s\n" $region_name | tee -a $log
 }
 
@@ -1449,8 +1458,8 @@ case $1 in
 		about;sleep 3;next;get_system_info;print_system_info;;
 	'version'|'-v'|'--v'|'-version'|'--version')
 		next;about;next;;
-   	'gb5'|'-gb5'|'--gb5'|'geek5'|'-geek5'|'--geek5' )
-		next;geekbench5;next;cleanup;;
+   	'gb'|'-gb'|'--gb'|'geek'|'-geek'|'--geek' )
+		next;benchinit;geekbench_req;next;cleanup;;
 	'io'|'-io'|'--io'|'ioping'|'-ioping'|'--ioping' )
 		next;iotest;write_io;next;;
 	'ip'|'-ip'|'--ip'|'geoip'|'-geoip'|'--geoip' )
