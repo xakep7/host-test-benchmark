@@ -1,0 +1,9 @@
+cdn.ninja YacoloCDN
+selcdn.x-api.net CDNVideo
+vkcdn.x-api.net VKCDN
+bgcdn.x-api.net Edgecenter
+gcdnco.x-api.net GCorelabs
+yacdn.x-api.net YandexCDN
+cdnnow.x-api.net CDNNow
+cdnx.su Cloudflare_1
+streamcontent.ru Cloudflare_2
