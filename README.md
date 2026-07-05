@@ -21,7 +21,7 @@ curl -LsO https://raw.githubusercontent.com/xakep7/host-test-benchmark/refs/head
 # Options
 - --info - Show System info
 - --version - Show script version
-- --geek5 - Run geekbench v5 only
+- --geek - Run geekbench only v5 or v6 autoselect
 - --ioping - Run io test only
 - --geoip - Show GeoIP info
 - -a or --a or -all or --all or -bench or --bench or -Global - Run all benchmarks, worldwide speedtest servers and share results
